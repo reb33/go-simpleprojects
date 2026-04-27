@@ -14,7 +14,7 @@ func main() {
 	operation := scanOperation()
 	arr := scanArray()
 	res := calculate(operation, arr)
-	fmt.Printf("Результат операции %v: %v\n", operation, res)
+	fmt.Printf("Результат операции %v: %.2f\n", operation, res)
 }
 
 func scanOperation() string {
@@ -80,7 +80,7 @@ func med(arr []int) float64 {
 	sort.Ints(arr_copy)
 	mid := len(arr_copy) / 2
 
-	if mid % 2 == 1 {
+	if len(arr_copy) % 2 == 1 {
 		return float64(arr_copy[mid])
 	}else {
 		return float64(arr_copy[mid-1]+arr_copy[mid]) / 2
