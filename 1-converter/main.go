@@ -5,9 +5,27 @@ import (
 	"strings"
 )
 
+type mapCurr = map[string]map[string]float64
+type mapFloat = map[string]float64
 const usdToEur = 0.85
 const usdToRub = 75.0
 const eurToRub = usdToRub / usdToEur
+
+var curses = mapCurr {
+	"USD": mapFloat{
+		"EUR": usdToEur,
+		"RUB": usdToRub,
+	},
+	"EUR": mapFloat{
+		"USD": 1 / usdToEur,
+		"RUB": eurToRub,
+	},
+	"RUB": mapFloat{
+		"USD": 1 / usdToRub,
+		"EUR": 1 / eurToRub,
+	},
+}
+
 
 func main() {
 	currFrom, currTo, valueToConvert := scanData()
@@ -84,28 +102,29 @@ func scanCurrTo(currFrom string) (string) {
 }
 
 func convertCurrency(amount float64, from string, to string) float64 {
-	switch from{
-	case "USD":
-		switch to{
-			case "RUB":
-				return amount * usdToRub
-			case "EUR":
-				return amount * usdToEur
-		}
-	case "EUR":
-		switch to{
-			case "RUB":
-				return amount * eurToRub
-			case "USD":
-				return amount / usdToEur
-		}
-	case "RUB":
-		switch to{
-			case "USD":
-				return amount / usdToRub
-			case "EUR":
-				return amount / eurToRub
-		}
-	}
-	return 0
+	// switch from{
+	// case "USD":
+	// 	switch to{
+	// 		case "RUB":
+	// 			return amount * usdToRub
+	// 		case "EUR":
+	// 			return amount * usdToEur
+	// 	}
+	// case "EUR":
+	// 	switch to{
+	// 		case "RUB":
+	// 			return amount * eurToRub
+	// 		case "USD":
+	// 			return amount / usdToEur
+	// 	}
+	// case "RUB":
+	// 	switch to{
+	// 		case "USD":
+	// 			return amount / usdToRub
+	// 		case "EUR":
+	// 			return amount / eurToRub
+	// 	}
+	// }
+	
+	return amount*curses[from][to]
 }
