@@ -11,25 +11,24 @@ const usdToEur = 0.85
 const usdToRub = 75.0
 const eurToRub = usdToRub / usdToEur
 
-var curses = mapCurr {
-	"USD": mapFloat{
-		"EUR": usdToEur,
-		"RUB": usdToRub,
-	},
-	"EUR": mapFloat{
-		"USD": 1 / usdToEur,
-		"RUB": eurToRub,
-	},
-	"RUB": mapFloat{
-		"USD": 1 / usdToRub,
-		"EUR": 1 / eurToRub,
-	},
-}
-
 
 func main() {
+	var curses = mapCurr {
+		"USD": mapFloat{
+			"EUR": usdToEur,
+			"RUB": usdToRub,
+		},
+		"EUR": mapFloat{
+			"USD": 1 / usdToEur,
+			"RUB": eurToRub,
+		},
+		"RUB": mapFloat{
+			"USD": 1 / usdToRub,
+			"EUR": 1 / eurToRub,
+		},
+	}
 	currFrom, currTo, valueToConvert := scanData()
-	convertedValue := convertCurrency(valueToConvert, currFrom, currTo)
+	convertedValue := convertCurrency(&curses, valueToConvert, currFrom, currTo)
 	fmt.Printf("Конвертация из %v в %v значения: %v получилось: %.2f\n", currFrom, currTo, valueToConvert, convertedValue)
 }
 
@@ -101,30 +100,6 @@ func scanCurrTo(currFrom string) (string) {
 	return strings.ToUpper(currTo)	
 }
 
-func convertCurrency(amount float64, from string, to string) float64 {
-	// switch from{
-	// case "USD":
-	// 	switch to{
-	// 		case "RUB":
-	// 			return amount * usdToRub
-	// 		case "EUR":
-	// 			return amount * usdToEur
-	// 	}
-	// case "EUR":
-	// 	switch to{
-	// 		case "RUB":
-	// 			return amount * eurToRub
-	// 		case "USD":
-	// 			return amount / usdToEur
-	// 	}
-	// case "RUB":
-	// 	switch to{
-	// 		case "USD":
-	// 			return amount / usdToRub
-	// 		case "EUR":
-	// 			return amount / eurToRub
-	// 	}
-	// }
-	
-	return amount*curses[from][to]
+func convertCurrency(curses *mapCurr, amount float64, from string, to string) float64 {
+	return amount*(*curses)[from][to]
 }
