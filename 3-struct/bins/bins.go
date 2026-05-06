@@ -6,10 +6,10 @@ import (
 )
 
 type Bin struct {
-	id        string
-	private   bool
-	createdAt time.Time
-	name      string
+	Id        string    `json:"id"`
+	Private   bool      `json:"private"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      string    `json:"name"`
 }
 
 func NewBin(id string, private bool, name string, createdAt time.Time) (*Bin, error) {
@@ -20,23 +20,28 @@ func NewBin(id string, private bool, name string, createdAt time.Time) (*Bin, er
 		return nil, errors.New("name не может быть пустым")
 	}
 	return &Bin{
-		id:        id,
-		private:   private,
-		createdAt: createdAt,
-		name:      name,
+		Id:        id,
+		Private:   private,
+		CreatedAt: createdAt,
+		Name:      name,
 	}, nil
 }
 
 type BinList struct {
-	bins []*Bin
+	Bins []*Bin	`json:"bins"`
 }
 
 func NewBinList(bins []*Bin) *BinList {
+	if bins == nil {
+		return &BinList{
+			Bins: []*Bin{},
+		}
+	}
 	return &BinList{
-		bins: bins,
+		Bins: bins,
 	}
 }
 
 func (b *BinList) AddBin(bin *Bin) {
-	b.bins = append(b.bins, bin)
+	b.Bins = append(b.Bins, bin)
 }
