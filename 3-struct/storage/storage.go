@@ -2,14 +2,20 @@ package storage
 
 import (
 	"3-struct/bins"
-	"3-struct/files"
 	"encoding/json"
 )
 
-const FILE_NAME = "bins.json"
+type DB interface {
+	Read() ([]byte, error)
+	Write(data []byte) error
+}
 
-func LoadBins() (*bins.BinList, error){
-	data, error := files.ReadFile(FILE_NAME)
+type Storage struct {
+	DB
+}
+
+func (storage *Storage) LoadBins() (*bins.BinList, error){
+	data, error := storage.Read()
 	if error != nil {
 		return nil, error
 	}
@@ -21,10 +27,10 @@ func LoadBins() (*bins.BinList, error){
 	return &bins, nil
 }
 
-func SaveBins(bins *bins.BinList) error {
+func (storage *Storage) SaveBins(bins *bins.BinList) error {
 	json, error := json.Marshal(bins)
 	if error != nil {
 		return error
 	}
-	return files.WriteFile(FILE_NAME, json)
+	return storage.Write(json)
 }
