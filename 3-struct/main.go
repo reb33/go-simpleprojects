@@ -2,6 +2,7 @@ package main
 
 import (
 	"3-struct/bins"
+	"3-struct/files"
 	"3-struct/storage"
 	"fmt"
 	"log"
@@ -9,11 +10,21 @@ import (
 	"time"
 )
 
+const FILE_NAME = "bins.json"
+
 func main() {
-	loadAndPrintBins()
+	fileDB, err := files.NewFileDB(FILE_NAME)
+	if err != nil {
+		log.Fatal(err)
+	}
+	storage := storage.Storage{
+		DB: fileDB,
+	}
+	createAndSaveBins(&storage)
+	loadAndPrintBins(&storage)
 }
 
-func createAndSaveBins() {
+func createAndSaveBins(storage *storage.Storage) {
 	_bins := []*bins.Bin{}
 	for i := range(3){
 		bin, err := bins.NewBin(strconv.Itoa(i+1), true, "Bin "+strconv.Itoa(i+1), time.Now())
@@ -32,7 +43,7 @@ func createAndSaveBins() {
 	}
 }
 
-func loadAndPrintBins() {
+func loadAndPrintBins(storage *storage.Storage) {
 	binList, err := storage.LoadBins()
 	if err != nil {
 		log.Fatal(err)
