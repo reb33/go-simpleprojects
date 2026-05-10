@@ -55,14 +55,20 @@ func scanArray() []int {
 	return arr
 }
 
+var calculations = map[string]func([]int) float64{
+	"AVG": func(arr []int) float64{
+		return float64(sum(arr)) / float64(len(arr))	
+	},
+	"SUM": func(arr []int) float64{
+		return float64(sum(arr))
+	},
+	"MED": med,
+}
+
 func calculate(operation string, arr []int) float64 {
-	switch operation {
-		case "AVG":
-			return float64(sum(arr)) / float64(len(arr))
-		case "SUM":
-			return float64(sum(arr))
-		case "MED":
-			return med(arr)
+	calc := calculations[operation]
+	if calc != nil {
+		return calc(arr)
 	}
 	return 0
 }
