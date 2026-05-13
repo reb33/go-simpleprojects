@@ -8,11 +8,17 @@ import (
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 const FILE_NAME = "bins.json"
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("не удалось загрузить .env")
+	}
 	fileDB, err := files.NewFileDB(FILE_NAME)
 	if err != nil {
 		log.Fatal(err)
