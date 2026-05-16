@@ -3,6 +3,8 @@ package storage
 import (
 	"3-struct/bins"
 	"encoding/json"
+	"errors"
+	"os"
 )
 
 type DB interface {
@@ -12,6 +14,17 @@ type DB interface {
 
 type Storage struct {
 	DB
+}
+
+func NewStorage(db DB) *Storage {
+	storage := Storage{DB: db}
+	_, err := storage.DB.Read()
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist){
+			storage.SaveBins(bins.NewBinList(nil))
+		}
+	}
+	return &storage
 }
 
 func (storage *Storage) LoadBins() (*bins.BinList, error){
@@ -33,4 +46,22 @@ func (storage *Storage) SaveBins(bins *bins.BinList) error {
 		return error
 	}
 	return storage.Write(json)
+}
+
+func (storage *Storage) AddBin(bin *bins.Bin) error {
+	bins, err := storage.LoadBins()
+	if err != nil {
+		return err
+	}
+	bins.AddBin(bin)
+	return storage.SaveBins(bins)
+}
+
+func (storage *Storage) DelBinById(binId string) error {
+	bins, err := storage.LoadBins()
+	if err != nil {
+		return err
+	}
+	bins.DelBinById(binId)
+	return storage.SaveBins(bins)
 }

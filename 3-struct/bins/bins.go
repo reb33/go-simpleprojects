@@ -28,7 +28,7 @@ func NewBin(id string, private bool, name string, createdAt time.Time) (*Bin, er
 }
 
 type BinList struct {
-	Bins []*Bin	`json:"bins"`
+	Bins []*Bin `json:"bins"`
 }
 
 func NewBinList(bins []*Bin) *BinList {
@@ -44,4 +44,24 @@ func NewBinList(bins []*Bin) *BinList {
 
 func (b *BinList) AddBin(bin *Bin) {
 	b.Bins = append(b.Bins, bin)
+}
+
+func (b *BinList) DelBin(bin *Bin) {
+	bins := []*Bin{}
+	for _, b := range b.Bins {
+		if b.Id != bin.Id {
+			bins = append(bins, b)
+		}
+	}
+	b.Bins = bins
+}
+
+func (b *BinList) DelBinById(id string) {
+	bins := []*Bin{}
+	for _, b := range b.Bins {
+		if b.Id != id {
+			bins = append(bins, b)
+		}
+	}
+	b.Bins = bins
 }
