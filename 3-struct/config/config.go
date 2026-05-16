@@ -9,6 +9,10 @@ type Config struct {
 
 func NewConfig(url string) *Config{
 	key := os.Getenv("KEY")
+	if url == "" {
+		url = os.Getenv("API_URL")
+	}
+	
 	return &Config{
 		Key : key,
 		ApiUrl: url,
