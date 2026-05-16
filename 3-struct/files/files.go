@@ -20,13 +20,17 @@ func NewFileDB(name string) (*FileDB, error) {
 }
 
 func (filedb *FileDB) Read() ([]byte, error) {
-	data, err := os.ReadFile(filedb.filename)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
+	return os.ReadFile(filedb.filename)
 }
 
 func (filedb *FileDB) Write(data []byte) error {
 	return os.WriteFile(filedb.filename, data, 0644)
+}
+
+func Read(filename string) ([]byte, error) {
+	return os.ReadFile(filename)
+}
+
+func Write(data []byte, filename string) error {
+	return os.WriteFile(filename, data, 0644)
 }
