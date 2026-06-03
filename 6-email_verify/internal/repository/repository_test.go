@@ -120,3 +120,49 @@ func TestGet(t *testing.T) {
 		t.Fatal("Ошибка получения email")
 	}
 }
+
+func TestDelete(t *testing.T) {
+	deleteFile()
+	defer deleteFile()
+	createFileWithData()
+	repo := repository.NewEmailRepository(FILE_NAME)
+
+	if len(repo.Store.Emails) != 2 {
+		t.Fatal("Ошибка загрузки данных из файла")
+	}
+
+	repo.Delete("test@test.com")
+	if len(repo.Store.Emails) != 1 {
+		t.Fatal("Ошибка удаления email")
+	}
+
+	store, err := readAndDecodeFile()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(store.Emails) != 1 {
+		t.Fatal("Ошибка сохранения данных в файл")
+	}
+}
+
+func TestDeleteAndAdd(t *testing.T) {
+	deleteFile()
+	defer deleteFile()
+	createFileWithData()
+	repo := repository.NewEmailRepository(FILE_NAME)
+
+	if len(repo.Store.Emails) != 2 {
+		t.Fatal("Ошибка загрузки данных из файла")
+	}
+
+	repo.Delete("test@test.com")
+	repo.Delete("test2@test.com")
+	if len(repo.Store.Emails) != 0 {
+		t.Fatal("Ошибка удаления email")
+	}
+
+	repo.Add("test@test.com", "testhash")
+	if len(repo.Store.Emails) != 1 {
+		t.Fatal("Ошибка добавления email")
+	}
+}

@@ -20,7 +20,7 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load("/Users/kbarylnikov/education/golang/pschool/1-converter/6-email_verify/.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Println("Error loading .env file")
 	}

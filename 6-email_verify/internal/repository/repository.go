@@ -70,6 +70,18 @@ func (repo *EmailRepository) Add(email string, hash string) error {
 	return repo.Save()
 }
 
+func (repo *EmailRepository) Delete(email string) error {
+	var emails []Email
+	for _, row := range repo.Store.Emails {
+		if row.Email == email {
+			continue
+		}
+		emails = append(emails, row)
+	}
+	repo.Store.Emails = emails
+	return repo.Save()
+}
+
 func (repo *EmailRepository) Get(hash string) (string, error) {
 	for _, email := range repo.Store.Emails {
 		if email.Hash == hash {

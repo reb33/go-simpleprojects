@@ -27,7 +27,7 @@ func NewEmailService(conf *configs.Config, repository *repository.EmailRepositor
 func (service *EmailService) SendEmail(verifyEmail string) error {
 	e := email.NewEmail()
 	hash := generate.Hash()
-	verifyLink := fmt.Sprintf("<a>%v/%v</a>", service.Config.VerifyURL, hash)
+	verifyLink := fmt.Sprintf(`<a href="%v/%v">Verify Email</a>`, service.Config.VerifyURL, hash)
 	e.HTML = []byte(verifyLink)
 	e.From = "asbc@gmail.com"
 	e.To = []string{verifyEmail}
@@ -54,6 +54,10 @@ func (service *EmailService) VerifyEmail(hash string) error {
 	if hash == "" {
 		return errors.New("hash is empty")
 	}
-	_, err := service.EmailRepository.Get(hash)
-	return err
+	email, err := service.EmailRepository.Get(hash)
+	if err != nil {
+		return err
+	}
+	service.EmailRepository.Delete(email)
+	return nil
 }
