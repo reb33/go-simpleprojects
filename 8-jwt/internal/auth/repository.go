@@ -14,20 +14,23 @@ func NewStore() *Store {
 	return &Store{}
 }
 
-func (s *Store) Upsert(phone, sessionId, code string) *Data {
-	data := s.GetByPhone(phone)
-	if data == nil {
-		data := Data{
-			phone:     phone,
-			sessionId: sessionId,
-			code:      code,
+func (s *Store) Upsert(phone, sessionId, code string) Data {
+	for i  := range s.data {
+		if s.data[i].phone == phone {
+			s.data[i].sessionId = sessionId
+			s.data[i].code = code
+			return s.data[i]
 		}
-		s.data = append(s.data, data)
-		return &data
 	}
-	data.sessionId = sessionId
-	data.code = code
-	return data
+	
+	newData := Data{
+		phone:     phone,
+		sessionId: sessionId,
+		code:      code,
+	}
+	s.data = append(s.data, newData)
+	return newData
+
 }
 
 func (s *Store) GetByPhone(phone string) (*Data) {
