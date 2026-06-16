@@ -18,5 +18,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&product.Product{})
+	db.AutoMigrate(&product.ProductDB{})
 }

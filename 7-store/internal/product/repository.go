@@ -15,6 +15,10 @@ type ProductDB struct {
 	Images      pq.StringArray `gorm:"type:text[]"`
 }
 
+func (ProductDB) TableName() string {
+    return "products"
+}
+
 func NewProductDB(product Product) *ProductDB {
 	return &ProductDB{
 		Name:        product.Name,
