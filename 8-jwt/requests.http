@@ -1,0 +1,14 @@
+POST http://localhost:8080/auth
+
+{
+    "phone": "89123123123"
+}
+
+###
+
+POST http://localhost:8080/verify
+
+{
+    "sessionId": "eBHI9nTHD4nPVA9F",
+    "code": "123456"
+}
