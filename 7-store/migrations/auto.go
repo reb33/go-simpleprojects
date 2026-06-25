@@ -1,6 +1,7 @@
 package main
 
 import (
+	"demo-store/internal/auth"
 	"demo-store/internal/product"
 	"os"
 
@@ -19,4 +20,5 @@ func main() {
 		panic(err)
 	}
 	db.AutoMigrate(&product.ProductDB{})
+	db.AutoMigrate(&auth.PhoneDB{})
 }
