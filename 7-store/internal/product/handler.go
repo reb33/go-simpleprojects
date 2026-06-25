@@ -1,8 +1,11 @@
 package product
 
 import (
+	"demo-store/configs"
+	"demo-store/pkg/middleware"
 	"demo-store/pkg/request"
 	"demo-store/pkg/response"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -11,12 +14,12 @@ type ProductHandler struct {
 	repo *ProductRepository
 }
 
-func NewProductHandler(router *http.ServeMux, repo *ProductRepository) {
+func NewProductHandler(router *http.ServeMux, repo *ProductRepository, config *configs.Configs) {
 	handler := &ProductHandler{
 		repo: repo,
 	}
 
-	router.HandleFunc("GET /product/{id}", handler.GetProduct())
+	router.Handle("GET /product/{id}", middleware.IsAuth(handler.GetProduct(), *config))
 	router.HandleFunc("POST /product", handler.CreateProduct())
 	router.HandleFunc("PATCH /product/{id}", handler.UpdateProduct())
 	router.HandleFunc("DELETE /product/{id}", handler.DeleteProduct())
@@ -24,6 +27,12 @@ func NewProductHandler(router *http.ServeMux, repo *ProductRepository) {
 
 func (handler *ProductHandler) GetProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if phone, ok := r.Context().Value(middleware.ContextPhoneKey).(string); ok {
+			log.Printf("Phone: %s", phone)
+		}else {
+			log.Printf("Phone not found")
+		}
+
 		idStr := r.PathValue("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
@@ -31,12 +40,16 @@ func (handler *ProductHandler) GetProduct() http.HandlerFunc {
 		}
 		product, err := handler.repo.Get(uint64(id))
 		if err != nil {
+			if err == ErrProductNotFound {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		response.Json(w, http.StatusOK, product)
 	}
 }
-
 
 func (handler *ProductHandler) CreateProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -45,9 +58,9 @@ func (handler *ProductHandler) CreateProduct() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		product, err := handler.repo.Create(&Product{
-			Name: request.Name,
+			Name:        request.Name,
 			Description: request.Description,
-			Images: request.Images,
+			Images:      request.Images,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,9 +81,9 @@ func (handler *ProductHandler) UpdateProduct() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		product, err := handler.repo.Update(uint64(id), &Product{
-			Name: request.Name,
+			Name:        request.Name,
 			Description: request.Description,
-			Images: request.Images,
+			Images:      request.Images,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
