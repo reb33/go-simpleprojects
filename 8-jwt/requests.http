@@ -9,6 +9,6 @@ POST http://localhost:8080/auth
 POST http://localhost:8080/verify
 
 {
-    "sessionId": "eBHI9nTHD4nPVA9F",
+    "sessionId": "H2HptZfsNjWeikLO",
     "code": "123456"
 }

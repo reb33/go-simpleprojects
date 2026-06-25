@@ -1,17 +1,98 @@
 package product
 
-import "net/http"
+import (
+	"demo-store/pkg/request"
+	"demo-store/pkg/response"
+	"net/http"
+	"strconv"
+)
 
-type ProductHandler struct{}
+type ProductHandler struct {
+	repo *ProductRepository
+}
 
-func NewProductHandler(router *http.ServeMux) {
-	handler := &ProductHandler{}
+func NewProductHandler(router *http.ServeMux, repo *ProductRepository) {
+	handler := &ProductHandler{
+		repo: repo,
+	}
 
-	router.HandleFunc("/product", handler.GetProduct())
+	router.HandleFunc("GET /product/{id}", handler.GetProduct())
+	router.HandleFunc("POST /product", handler.CreateProduct())
+	router.HandleFunc("PATCH /product/{id}", handler.UpdateProduct())
+	router.HandleFunc("DELETE /product/{id}", handler.DeleteProduct())
 }
 
 func (handler *ProductHandler) GetProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Product"))
+		idStr := r.PathValue("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid id", http.StatusBadRequest)
+		}
+		product, err := handler.repo.Get(uint64(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		response.Json(w, http.StatusOK, product)
+	}
+}
+
+
+func (handler *ProductHandler) CreateProduct() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		request, err := request.HandleBody[CreateProductRequest](r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+		product, err := handler.repo.Create(&Product{
+			Name: request.Name,
+			Description: request.Description,
+			Images: request.Images,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		response.Json(w, http.StatusCreated, product)
+	}
+}
+
+func (handler *ProductHandler) UpdateProduct() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid id", http.StatusBadRequest)
+		}
+		request, err := request.HandleBody[UpdateProductRequest](r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+		product, err := handler.repo.Update(uint64(id), &Product{
+			Name: request.Name,
+			Description: request.Description,
+			Images: request.Images,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		response.Json(w, http.StatusOK, product)
+	}
+}
+
+func (handler *ProductHandler) DeleteProduct() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid id", http.StatusBadRequest)
+		}
+		product, deleted, err := handler.repo.Delete(uint64(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		if !deleted {
+			http.Error(w, "Product not found", http.StatusNotFound)
+		}
+		response.Json(w, http.StatusOK, product)
 	}
 }

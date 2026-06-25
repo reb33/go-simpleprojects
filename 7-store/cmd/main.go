@@ -1,7 +1,11 @@
 package main
 
 import (
+	"demo-store/configs"
+	"demo-store/internal/auth"
 	"demo-store/internal/product"
+	"demo-store/pkg/db"
+	"demo-store/pkg/jwt"
 	"demo-store/pkg/middleware"
 	"fmt"
 	"net/http"
@@ -23,9 +27,18 @@ func init() {
 }
 
 func main() {
+	config := configs.LoadConfigs()
+	db := db.NewDb(config)
+	jwt := jwt.NewJWT(config.Auth.Secret)
+	productRepository := product.NewProductRepository(db)
+	authRepository := auth.NewAuthRepository(db)
+
+	authService := auth.NewService(jwt, authRepository)
+
 	router := http.NewServeMux()
 
-	product.NewProductHandler(router)
+	product.NewProductHandler(router, productRepository)
+	auth.NewHandler(router, authService)
 
 	server := http.Server{
 		Addr:    ":8080",
