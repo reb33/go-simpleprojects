@@ -1,6 +1,6 @@
 package auth
 
-type PhoneData struct {
+type User struct {
 	Phone     string
 	SessionId string
 	Code      string
