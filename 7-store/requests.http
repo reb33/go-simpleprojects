@@ -1,0 +1,18 @@
+GET http://localhost:8080/product/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6Ijg5MTIzMTIzMTIzIn0.S-e8DeTUdlRVDjRObENGO2KpErDb7HAnIKd53UA584U
+
+### 
+POST http://localhost:8080/auth
+
+{
+    "phone": "89123123123"
+}
+
+###
+
+POST http://localhost:8080/verify
+
+{
+    "sessionId": "xXPEGyg6HWuYBFUJ",
+    "code": "123456"
+}

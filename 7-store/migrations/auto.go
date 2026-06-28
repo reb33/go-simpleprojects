@@ -20,5 +20,5 @@ func main() {
 		panic(err)
 	}
 	db.AutoMigrate(&product.ProductDB{})
-	db.AutoMigrate(&auth.PhoneDB{})
+	db.AutoMigrate(&auth.UserDB{})
 }

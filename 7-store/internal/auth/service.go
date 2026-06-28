@@ -36,7 +36,7 @@ func (s *Service) Verify(sessionId, code string) (string, error) {
 	if data.Code != code {
 		return "", ErrInvalidCode
 	}
-	token, err := s.jwt.Create(data.Phone)
+	token, err := s.jwt.Create(&jwt.JWTData{Phone: data.Phone})
 	if err != nil {
 		return "", err
 	}

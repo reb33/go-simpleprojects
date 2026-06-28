@@ -7,15 +7,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type PhoneDB struct {
+type UserDB struct {
 	gorm.Model
 	Phone     string
 	SessionId string
 	Code      string
 }
 
-func (PhoneDB) TableName() string {
-	return "phone_auth_codes"
+func (UserDB) TableName() string {
+	return "users"
 }
 
 type AuthRepository struct {
@@ -26,14 +26,14 @@ func NewAuthRepository(db *db.Db) *AuthRepository {
 	return &AuthRepository{db: db}
 }
 
-func (repo *AuthRepository) Upsert(phone, sessionId, code string) (*PhoneDB, error) {
+func (repo *AuthRepository) Upsert(phone, sessionId, code string) (*UserDB, error) {
 	phoneDB, err := repo.GetByPhone(phone)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
 	if phoneDB == nil {
-		phoneDB = &PhoneDB{
+		phoneDB = &UserDB{
 			Phone:     phone,
 			SessionId: sessionId,
 			Code:      code,
@@ -49,8 +49,8 @@ func (repo *AuthRepository) Upsert(phone, sessionId, code string) (*PhoneDB, err
 	return phoneDB, nil
 }
 
-func (repo *AuthRepository) Update(id uint, phoneData PhoneData) (*PhoneDB, error) {
-	var phoneDB PhoneDB
+func (repo *AuthRepository) Update(id uint, phoneData User) (*UserDB, error) {
+	var phoneDB UserDB
 	if err := repo.db.First(&phoneDB, id).Error; err != nil {
 		return nil, err
 	}
@@ -64,8 +64,8 @@ func (repo *AuthRepository) Update(id uint, phoneData PhoneData) (*PhoneDB, erro
 	return &phoneDB, nil
 }
 
-func (repo *AuthRepository) GetByPhone(phone string) (*PhoneDB, error) {
-	var phoneDB PhoneDB
+func (repo *AuthRepository) GetByPhone(phone string) (*UserDB, error) {
+	var phoneDB UserDB
 	if err := repo.db.Where("phone = ?", phone).First(&phoneDB).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -75,8 +75,8 @@ func (repo *AuthRepository) GetByPhone(phone string) (*PhoneDB, error) {
 	return &phoneDB, nil
 }
 
-func (repo *AuthRepository) GetBySessionId(sessionId string) (*PhoneDB, error) {
-	var phoneDB PhoneDB
+func (repo *AuthRepository) GetBySessionId(sessionId string) (*UserDB, error) {
+	var phoneDB UserDB
 	if err := repo.db.Where("session_id = ?", sessionId).First(&phoneDB).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil

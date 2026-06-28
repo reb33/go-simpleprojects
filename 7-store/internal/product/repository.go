@@ -2,6 +2,7 @@ package product
 
 import (
 	"demo-store/pkg/db"
+	"errors"
 
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -69,8 +70,11 @@ func (repo *ProductRepository) Delete(id uint64) (*ProductDB, bool, error) {
 
 func (repo *ProductRepository) Get(id uint64) (*ProductDB, error) {
 	var productDB ProductDB
-	result := repo.Db.Limit(1).Find(&productDB, id)
+	result := repo.Db.Where(id).First(&productDB)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrProductNotFound
+		}
 		return nil, result.Error
 	}
 	return &productDB, nil

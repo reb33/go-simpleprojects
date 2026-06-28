@@ -37,7 +37,7 @@ func main() {
 
 	router := http.NewServeMux()
 
-	product.NewProductHandler(router, productRepository)
+	product.NewProductHandler(router, productRepository, config)
 	auth.NewHandler(router, authService)
 
 	server := http.Server{
