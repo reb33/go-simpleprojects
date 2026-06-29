@@ -2,6 +2,7 @@ package main
 
 import (
 	"demo-store/internal/auth"
+	"demo-store/internal/order"
 	"demo-store/internal/product"
 	"os"
 
@@ -21,4 +22,5 @@ func main() {
 	}
 	db.AutoMigrate(&product.ProductDB{})
 	db.AutoMigrate(&auth.UserDB{})
+	db.AutoMigrate(&order.OrderDB{})
 }

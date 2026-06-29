@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"demo-store/internal/model"
+	"demo-store/internal/order"
 	"demo-store/pkg/db"
 	"errors"
 
@@ -12,6 +14,7 @@ type UserDB struct {
 	Phone     string
 	SessionId string
 	Code      string
+	Orders    []order.OrderDB `gorm:"foreignKey:UserID"`
 }
 
 func (UserDB) TableName() string {
@@ -27,36 +30,14 @@ func NewAuthRepository(db *db.Db) *AuthRepository {
 }
 
 func (repo *AuthRepository) Upsert(phone, sessionId, code string) (*UserDB, error) {
-	phoneDB, err := repo.GetByPhone(phone)
+	var phoneDB UserDB
+	err := repo.db.Where("phone = ?", phone).First(&phoneDB).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
-
-	if phoneDB == nil {
-		phoneDB = &UserDB{
-			Phone:     phone,
-			SessionId: sessionId,
-			Code:      code,
-		}
-		if err := repo.db.Create(phoneDB).Error; err != nil {
-			return nil, err
-		}
-		return phoneDB, nil
-	}
-	if err := repo.db.Save(&phoneDB).Error; err != nil {
-		return nil, err
-	}
-	return phoneDB, nil
-}
-
-func (repo *AuthRepository) Update(id uint, phoneData User) (*UserDB, error) {
-	var phoneDB UserDB
-	if err := repo.db.First(&phoneDB, id).Error; err != nil {
-		return nil, err
-	}
-	phoneDB.Phone = phoneData.Phone
-	phoneDB.SessionId = phoneData.SessionId
-	phoneDB.Code = phoneData.Code
+	phoneDB.Phone = phone
+	phoneDB.SessionId = sessionId
+	phoneDB.Code = code
 
 	if err := repo.db.Save(&phoneDB).Error; err != nil {
 		return nil, err
@@ -64,7 +45,22 @@ func (repo *AuthRepository) Update(id uint, phoneData User) (*UserDB, error) {
 	return &phoneDB, nil
 }
 
-func (repo *AuthRepository) GetByPhone(phone string) (*UserDB, error) {
+func (repo *AuthRepository) Update(id uint, phoneData model.User, code string) (*UserDB, error) {
+	var phoneDB UserDB
+	if err := repo.db.First(&phoneDB, id).Error; err != nil {
+		return nil, err
+	}
+	phoneDB.Phone = phoneData.Phone
+	phoneDB.SessionId = phoneData.SessionId
+	phoneDB.Code = code
+
+	if err := repo.db.Save(&phoneDB).Error; err != nil {
+		return nil, err
+	}
+	return &phoneDB, nil
+}
+
+func (repo *AuthRepository) GetByPhone(phone string) (*model.User, error) {
 	var phoneDB UserDB
 	if err := repo.db.Where("phone = ?", phone).First(&phoneDB).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -72,7 +68,12 @@ func (repo *AuthRepository) GetByPhone(phone string) (*UserDB, error) {
 		}
 		return nil, err
 	}
-	return &phoneDB, nil
+	user := model.User{
+		Id:        int(phoneDB.ID),
+		Phone:     phoneDB.Phone,
+		SessionId: phoneDB.SessionId,
+	}
+	return &user, nil
 }
 
 func (repo *AuthRepository) GetBySessionId(sessionId string) (*UserDB, error) {

@@ -14,7 +14,7 @@ const (
 	ContextPhoneKey key = "ContextPhoneKey"
 )
 
-func IsAuth(next http.Handler, config configs.Configs) http.Handler {
+func IsAuthed(next http.Handler, config *configs.Configs) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {

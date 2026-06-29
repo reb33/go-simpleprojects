@@ -3,6 +3,7 @@ package main
 import (
 	"demo-store/configs"
 	"demo-store/internal/auth"
+	"demo-store/internal/order"
 	"demo-store/internal/product"
 	"demo-store/pkg/db"
 	"demo-store/pkg/jwt"
@@ -30,15 +31,29 @@ func main() {
 	config := configs.LoadConfigs()
 	db := db.NewDb(config)
 	jwt := jwt.NewJWT(config.Auth.Secret)
+
+	// Repository
 	productRepository := product.NewProductRepository(db)
 	authRepository := auth.NewAuthRepository(db)
+	orderRepository := order.NewOrderRepository(db)
 
+	// Service
 	authService := auth.NewService(jwt, authRepository)
+	orderService := order.NewOrderService(order.OrderServiceDeps{
+		OrderRepository: orderRepository,
+		UserRepository:       authRepository,
+		ProductRepository:    productRepository,
+	})
 
+	// Handlers
 	router := http.NewServeMux()
 
 	product.NewProductHandler(router, productRepository, config)
 	auth.NewHandler(router, authService)
+	order.NewOrderHandler(router, &order.OrderHandlerDeps{
+		OrderService: orderService,
+		Config:       config,
+	})
 
 	server := http.Server{
 		Addr:    ":8080",
