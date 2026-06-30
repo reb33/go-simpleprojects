@@ -1,6 +1,7 @@
 package product
 
 import (
+	"demo-store/internal/model"
 	"demo-store/pkg/db"
 	"errors"
 
@@ -17,11 +18,14 @@ type ProductDB struct {
 }
 
 func (ProductDB) TableName() string {
-    return "products"
+	return "products"
 }
 
-func NewProductDB(product Product) *ProductDB {
+func NewProductDB(product model.Product) *ProductDB {
 	return &ProductDB{
+		Model:       gorm.Model{
+			ID: uint(product.Id),
+		},
 		Name:        product.Name,
 		Description: product.Description,
 		Images:      pq.StringArray(product.Images),
@@ -36,7 +40,7 @@ func NewProductRepository(db *db.Db) *ProductRepository {
 	return &ProductRepository{Db: db}
 }
 
-func (repo *ProductRepository) Create(product *Product) (*ProductDB, error) {
+func (repo *ProductRepository) Create(product *model.Product) (*ProductDB, error) {
 	productDB := NewProductDB(*product)
 	result := repo.Db.Create(productDB)
 	if result.Error != nil {
@@ -45,9 +49,9 @@ func (repo *ProductRepository) Create(product *Product) (*ProductDB, error) {
 	return productDB, nil
 }
 
-func (repo *ProductRepository) Update(id uint64, product *Product) (*ProductDB, error) {
+func (repo *ProductRepository) Update(id uint64, product *model.Product) (*ProductDB, error) {
 	productDB := &ProductDB{
-		Model: gorm.Model{ID: uint(id)},
+		Model:       gorm.Model{ID: uint(id)},
 		Name:        product.Name,
 		Description: product.Description,
 		Images:      pq.StringArray(product.Images),
@@ -78,4 +82,26 @@ func (repo *ProductRepository) Get(id uint64) (*ProductDB, error) {
 		return nil, result.Error
 	}
 	return &productDB, nil
+}
+
+func ConvertProductsDBToProducts(productsDB []ProductDB) []model.Product {
+	products := make([]model.Product, len(productsDB))
+	for i, productDB := range productsDB {
+		products[i] = model.Product{
+			Id:          int(productDB.ID),
+			Name:        productDB.Name,
+			Description: productDB.Description,
+	}
+	}
+	return products
+}
+
+func (repo *ProductRepository) GetAllByNames(names []string) ([]model.Product, error) {
+	var productsDB []ProductDB
+	result := repo.Db.Where("name IN ?", names).Find(&productsDB)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	return ConvertProductsDBToProducts(productsDB), nil
 }

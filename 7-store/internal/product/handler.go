@@ -2,6 +2,7 @@ package product
 
 import (
 	"demo-store/configs"
+	"demo-store/internal/model"
 	"demo-store/pkg/middleware"
 	"demo-store/pkg/request"
 	"demo-store/pkg/response"
@@ -19,7 +20,7 @@ func NewProductHandler(router *http.ServeMux, repo *ProductRepository, config *c
 		repo: repo,
 	}
 
-	router.Handle("GET /product/{id}", middleware.IsAuth(handler.GetProduct(), *config))
+	router.Handle("GET /product/{id}", middleware.IsAuthed(handler.GetProduct(), config))
 	router.HandleFunc("POST /product", handler.CreateProduct())
 	router.HandleFunc("PATCH /product/{id}", handler.UpdateProduct())
 	router.HandleFunc("DELETE /product/{id}", handler.DeleteProduct())
@@ -29,7 +30,7 @@ func (handler *ProductHandler) GetProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if phone, ok := r.Context().Value(middleware.ContextPhoneKey).(string); ok {
 			log.Printf("Phone: %s", phone)
-		}else {
+		} else {
 			log.Printf("Phone not found")
 		}
 
@@ -57,7 +58,7 @@ func (handler *ProductHandler) CreateProduct() http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		product, err := handler.repo.Create(&Product{
+		product, err := handler.repo.Create(&model.Product{
 			Name:        request.Name,
 			Description: request.Description,
 			Images:      request.Images,
@@ -80,7 +81,7 @@ func (handler *ProductHandler) UpdateProduct() http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-		product, err := handler.repo.Update(uint64(id), &Product{
+		product, err := handler.repo.Update(uint64(id), &model.Product{
 			Name:        request.Name,
 			Description: request.Description,
 			Images:      request.Images,

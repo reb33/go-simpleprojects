@@ -1,18 +1,45 @@
-GET http://localhost:8080/product/1
+# создать order
+POST http://localhost:8080/order
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6Ijg5MTIzMTIzMTIzIn0.S-e8DeTUdlRVDjRObENGO2KpErDb7HAnIKd53UA584U
+
+{
+    "products": ["сосиска", "макарошки"]
+}
+
+###
+# получить 1 order
+GET http://localhost:8080/order/8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6Ijg5MTIzMTIzMTIzIn0.S-e8DeTUdlRVDjRObENGO2KpErDb7HAnIKd53UA584U
+
+###
+# получить все order по пользователю
+GET http://localhost:8080/my-orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6Ijg5MTIzMTIzMTIzIn0.S-e8DeTUdlRVDjRObENGO2KpErDb7HAnIKd53UA584U
+
+###
+GET http://localhost:8080/product/7
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwaG9uZSI6Ijg5MTIzMTIzMTIzIn0.S-e8DeTUdlRVDjRObENGO2KpErDb7HAnIKd53UA584U
 
 ### 
 POST http://localhost:8080/auth
 
 {
-    "phone": "89123123123"
+    "phone": "89123123125"
 }
 
 ###
-
 POST http://localhost:8080/verify
 
 {
-    "sessionId": "xXPEGyg6HWuYBFUJ",
+    "sessionId": "I31ykRIMmfSoQzGD",
     "code": "123456"
+}
+
+###
+# создать продукт
+POST http://localhost:8080/product
+
+{
+    "name": "дошик",
+    "description": "мясной дошик"
 }
