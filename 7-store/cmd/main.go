@@ -27,7 +27,7 @@ func init() {
 	log.SetLevel(log.InfoLevel)
 }
 
-func main() {
+func App() http.Handler{
 	config := configs.LoadConfigs()
 	db := db.NewDb(config)
 	jwt := jwt.NewJWT(config.Auth.Secret)
@@ -54,10 +54,15 @@ func main() {
 		OrderService: orderService,
 		Config:       config,
 	})
+	return middleware.Logs(router)
+}
 
+func main() {
+	
+	app := App()
 	server := http.Server{
 		Addr:    ":8080",
-		Handler: middleware.Logs(router),
+		Handler: app,
 	}
 
 	fmt.Println("Server listen on port 8080")

@@ -14,7 +14,7 @@ type UserDB struct {
 	Phone     string
 	SessionId string
 	Code      string
-	Orders    []order.OrderDB `gorm:"foreignKey:UserID"`
+	Orders    []order.OrderDB `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"`
 }
 
 func (UserDB) TableName() string {

@@ -12,7 +12,7 @@ import (
 type OrderDB struct {
 	gorm.Model
 	UserID   uint
-	Products []product.ProductDB `gorm:"many2many:order_products;"`
+	Products []product.ProductDB `gorm:"many2many:order_products;constraint:OnDelete:CASCADE;"`
 }
 
 func (OrderDB) TableName() string {
