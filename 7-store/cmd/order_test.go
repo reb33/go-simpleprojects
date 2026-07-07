@@ -59,10 +59,19 @@ type CreateOrderResponse struct {
 	Products []model.Product `json:"products"`
 }
 
+var database *gorm.DB
+
+func TestMain(m *testing.M) { // Инициализация перед всеми тестами
+	database = initDB()
+	defer clearData(database)
+
+	// Запуск всех тестов
+	m.Run()  //обязательная команда, а то тесты не запустяться
+}
+
 func TestCreateOrder(t *testing.T) {
-	db := initDB()
-	initData(db)
-	defer clearData(db)
+	initData(database)
+	defer clearData(database)
 	token, err := jwt.NewJWT(os.Getenv("SECRET")).Create(&jwt.JWTData{
 		Phone: "1234567890",
 	})
