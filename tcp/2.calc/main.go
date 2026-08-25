@@ -61,7 +61,7 @@ func handleConnection(ctx context.Context, conn net.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer conn.Close()
 
-	// 1. Создаем контекстный логгер для конкретного клиента.
+	// 2. Создаем контекстный логгер для конкретного клиента.
 	// Теперь КАЖДОЕ сообщение этого логгера будет автоматически содержать IP клиента!
 	clientAddr := conn.RemoteAddr().String()
 	logger := slog.With("client_addr", clientAddr)
@@ -169,7 +169,7 @@ func main() {
 
 	addr := net.JoinHostPort("", *port)
 
-	// 2. Инициализируем JSON-логгер в самом начале программы
+	// 1. Инициализируем JSON-логгер в самом начале программы
 	// Вся программа теперь будет писать логи в красивом JSON-формате
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
 	slog.SetDefault(slog.New(jsonHandler))
