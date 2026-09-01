@@ -103,7 +103,16 @@ func handleConnection(ctx context.Context, conn net.Conn, wg *sync.WaitGroup) {
 			output = fmt.Sprintf("%f\n", result)
 		}
 
+		// 1. Обновляем таймаут на чтение для следующего цикла
 		_ = conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
+
+		// 2. Устанавливаем таймаут на саму запись (например, 15 секунд на отправку ответа)
+		_ = conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+
+		// 3. Отправляем данные
+		if _, writeErr := conn.Write([]byte(output)); writeErr != nil {
+			return
+		}
 
 		if _, writeErr := conn.Write([]byte(output)); writeErr != nil {
 			logger.Error("Failed to write response", "error", writeErr.Error())
@@ -111,10 +120,16 @@ func handleConnection(ctx context.Context, conn net.Conn, wg *sync.WaitGroup) {
 		}
 	}
 
-	if err := scanner.Err(); err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
-		logger.Error("Scanner error", "error", err.Error())
+	// Цикл завершился, проверяем почему
+	if err := scanner.Err(); err != nil {
+		// Проверяем, является ли ошибка сетевой и вызвана ли она таймаутом
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			logger.Info("Client disconnected due to inactivity (timeout)")
+		} else {
+			logger.Error("Scanner error", "error", err.Error())
+		}
 	} else {
-		logger.Info("Client disconnected")
+		logger.Info("Client disconnected normally")
 	}
 }
 
