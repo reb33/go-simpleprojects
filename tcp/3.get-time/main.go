@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"os"
@@ -15,31 +14,25 @@ import (
 	"time"
 )
 
-func handlerConnection(ctx context.Context, conn net.Conn, wg *sync.WaitGroup) {
+func handlerConnection(conn net.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
-	defer conn.Close()
+	// Используем замыкание в defer, чтобы гарантировать, что закрытие произойдет,
+	// даже если внутри функции будут паники (хорошая практика)
+	defer func() { _ = conn.Close() }()
 
 	clientAddr := conn.RemoteAddr().String()
-	logger := slog.With("clent_addr", clientAddr)
+	logger := slog.With("client_addr", clientAddr)
 
-	logger.Info("Client connected")
+	logger.Debug("Client connected")
 
-	done := make(chan struct{})
-	defer close(done)
+	// Устанавливаем таймаут на запись. Фоновая горутина с ctx здесь не нужна,
+	// так как эта операция атомарна и мгновенна.
+	_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			_ = conn.Close()
-		case <-done:
-			return
-		}
-	}()
-
-	_ = conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
-
-	if _, writeError := conn.Write([]byte(time.Now().Format("02 Jan 2006 15:04:05"))); writeError != nil {
-		logger.Error("Failed to write response", "error", writeError.Error())
+	// Добавлен перенос строки \n в конце для корректного чтения клиентами
+	response := time.Now().Format("02 Jan 2006 15:04:05\n")
+	if _, writeError := conn.Write([]byte(response)); writeError != nil {
+		logger.Error("Failed to write response", "error", writeError)
 		return
 	}
 }
@@ -53,13 +46,14 @@ func server(ctx context.Context, address string) error {
 	}
 	defer listener.Close()
 
-	slog.Info("Server start on " + address)
+	slog.Info("Server started", "address", address)
 
 	var wg sync.WaitGroup
 
+	// Горутина для остановки listener при отмене контекста
 	go func() {
 		<-ctx.Done()
-		slog.Warn("Got stop signal")
+		slog.Warn("Got stop signal, closing listener...")
 		_ = listener.Close()
 	}()
 
@@ -67,19 +61,20 @@ func server(ctx context.Context, address string) error {
 		conn, err := listener.Accept()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
-				break
+				break // Корректный выход при остановке сервера
 			}
-			slog.Info("Ошибка Accept: %w", "error", err)
+			slog.Error("Accept error", "error", err) // Исправлен формат логирования
 			continue
 		}
 
 		wg.Add(1)
-		go handlerConnection(ctx, conn, &wg)
+		// Передавать ctx в handler больше нет необходимости
+		go handlerConnection(conn, &wg)
 	}
 
-	slog.Info("Ожидаем завершения обработки текущих клиентов...")
+	slog.Info("Waiting for active connections to change...")
 	wg.Wait()
-	slog.Info("Все соединения закрыты. Сервер остановлен")
+	slog.Info("All connections closed. Server stopped")
 	return nil
 }
 
@@ -98,6 +93,7 @@ func main() {
 	defer stop()
 
 	if err := server(ctx, addr); err != nil {
-		log.Fatal("Критическая ошибка сервера: %w\n", err)
+		slog.Error("Critical server error", "error", err) // Исправлен log.Fatal с %w
+		os.Exit(1)
 	}
 }
